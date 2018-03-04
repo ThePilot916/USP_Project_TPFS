@@ -82,6 +82,7 @@ static int tp_mkdir(const char *path, mode_t mode){
 			
 			INODE *new_inode;
 			new_inode = &inode_g[avail_inode];
+			new_inode->inode_num = avail_inode;
 			new_inode->is_dir = true;
 			new_inode->block_off = avail_dirent;
 			new_inode->block_n = 1;
@@ -128,6 +129,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		
 		INODE *new_inode;
 		new_inode = &inode_g[avail_inode];
+		new_inode->inode_num = avail_inode;
 		new_inode->is_dir = false;
 		new_inode->block_off = avail_datablk;
 		new_inode->block_n = 1;
@@ -137,6 +139,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		new_dir = &dirent_g[avail_dirent];
 		strcpy(new_dir->file_name, new_name);
 		new_dir->inode_num = avail_inode;
+		new_dir->dirent_num = avail_dirent;
 		new_dir ->dirent_c = 0;
 
 		parent_dir->dirent_c = new_c;
@@ -257,7 +260,7 @@ static struct fuse_operations tp_operations = {
 
 int main(int argc, char *argv[]){
 	
-	TPFS = calloc(1,TPFS_SIZE);
+	TPFS = calloc(1,TPFS_SIZE);							//init with 1 because freemap is auto initialised by this
 
 	freemap_g = (FREEMAP *)TPFS;
 	inode_g = (INODE *)(TPFS+INODE_OFF);
@@ -270,8 +273,25 @@ int main(int argc, char *argv[]){
 	inode_initialise(pers_file);
 	dirent_initialise(pers_file);
 	datablk_initialise(pers_file);
-	
-	
+
+	if(pers_file == NULL){									//create a new file if its not present(fresh init)
+		pers_file = fopen("pers_tpfs","w+");
+		DIRENT *root_dir = &dirent_g[0];
+		INODE *root_inode = &inode_g[0];
+
+		root_dir->file_nam = "/";
+		root_dir->dirent_c = 0;
+		root_dir->dirent_num = 0;
+		root_dir->inode_num = 0;
+
+		root_inode->inode_num = 0;
+		root_inode->is_dir = true;
+
+		freemap_g->inode_free[0] = 0;
+		freemap_g->dirent_free[0] = 0;
+
+		return fuse_main(argc,argv,&tp_operations,NULL);
+	}
 }
 
 

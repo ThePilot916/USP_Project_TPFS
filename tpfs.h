@@ -45,7 +45,7 @@
 char *TPFS;																	//Whole of the filesystem
 
 typedef struct inode{
-
+	int inode_num;												//index where current inode is
 	bool is_dir;
 	int block_off;												//offset value to data_block from datablock begin, begin will be different if its a directory, it'll give data_block to the dirent instead.
 	int block_n;													//number of data_blocks being used by it, currently useless
@@ -71,11 +71,10 @@ typedef struct freemap{
 }FREEMAP;
 
 
-FREEMAP *freemap_g;
-INODE *inode_g;
-DIRENT *dirent_g;
+FREEMAP *freemap_g;	
+INODE *inode_g;							//0th inode_g is root	always
+DIRENT *dirent_g;						//0th dirent_g is root always
 DATA_BLOCK *datablk_g;
-
 
 
 /*
@@ -152,4 +151,5 @@ int dirent_write(FILE *fp,int offset,DIRENT *buff);
 int datablk_write(FILE *fp,int offset,DATA_BLOCK *buff);
 int freemap_write(FILE *fp);
 
+int tpfs_to_disk(FILE *fp);
 #endif

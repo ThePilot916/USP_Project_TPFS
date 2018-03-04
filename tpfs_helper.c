@@ -12,12 +12,12 @@ int get_dirent(DIRENT *dirent,char *path){
 		printf("get_dirent: %s\n",path);
 	#endif
 	if(strcmp(path,"/")==0){
-		dirent = root_dir;
+		dirent = &dirent_g[0];
 		return 1;
 	}
 	else{
 		char *token = strtok(path,"/");
-		DIRENT *parent = root_dir;
+		DIRENT *parent = &dirent_g[0];
 		while(token != NULL){
 				#ifdef DEBUGx2
 					printf("get_dirent: %s\n",parent->file_name);
