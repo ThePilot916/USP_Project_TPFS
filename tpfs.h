@@ -38,7 +38,7 @@
 
 #define DIRENT_PER_DIR 10										//entries per directory
 #define DIRENT_MAX	50											//Max number of dirents allowed
-#define INODE_MAX (DIRENT*DIRENT_PER_DIR)		//Max number of GLOBAL inodes
+#define INODE_MAX (DIRENT_MAX*DIRENT_PER_DIR)		//Max number of GLOBAL inodes
 #define DATA_BLOCKS (INODE_MAX)							//Total number of data_blocks available
 #define FILE_NAME_MAX 256										//Dirent_filename max size
 
