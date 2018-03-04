@@ -21,6 +21,19 @@
 #include <stdbool.h>
 #include <fcntl.h>
 
+
+/*
+ *
+ *
+ *Notation info: 
+ *	_l -> list of its prefix
+ *	_c -> count of its prefix
+ *	_g -> prefix is of type global
+ *
+ *
+ */
+
+
 #define BLOCK_SIZE 4096
 
 #define DIRENT_PER_DIR 10										//entries per directory
@@ -29,7 +42,7 @@
 #define DATA_BLOCKS (INODE_MAX)							//Total number of data_blocks available
 #define FILE_NAME_MAX 256										//Dirent_filename max size
 
-
+char *TPFS;																	//Whole of the filesystem
 
 typedef struct inode{
 
@@ -55,6 +68,13 @@ typedef struct freemap{
 	int dirent_free[DIRENT_MAX];
 	int datablk_free[DATA_BLOCKS];
 }FREEMAP;
+
+
+FREEMAP *freemap_g;
+INODE *inode_g;
+DIRENT *dirent_g;
+DATA_BLOCK *datablk_g;
+
 
 
 /*

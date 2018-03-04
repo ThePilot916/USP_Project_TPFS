@@ -100,7 +100,7 @@ char* get_dirent_parent(DIRENT *dirent, char *path){
 
 int get_inode_free(){
 	for(i = 0; i < INODE_MAX; i++){
-		if(freemap_g.inode_free[i] == 1){
+		if(freemap_g->inode_free[i] == 1){
 			return i;
 		}
 	}
@@ -111,7 +111,7 @@ int get_inode_free(){
 
 int get_dirent_free(){
 	for(i = 0; i < DIRENT_MAX; i++){
-		if(freemap_g.dirent_free[i] == 1){
+		if(freemap_g->dirent_free[i] == 1){
 			return i;
 		}
 	}
@@ -122,7 +122,7 @@ int get_dirent_free(){
 
 int get_data_blk_free(){
 	for(i = 0; i < INODE_MAX; i++){
-		if(freemap_g.datablk_free[i] == 1){
+		if(freemap_g->datablk_free[i] == 1){
 			return i;
 		}
 	}
@@ -130,3 +130,45 @@ int get_data_blk_free(){
 		return -1;
 	}
 }
+
+
+/*
+ *
+ *
+ *Persistence helpers
+ *
+ *
+ */
+
+int inode_initialise(FILE *fp){
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

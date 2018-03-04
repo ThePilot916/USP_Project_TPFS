@@ -63,7 +63,7 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 	}
 }
 
-
+//max_dir_ent hasnt been taken care of
 static int tp_mkdir(const char *path, mode_t mode){
 	
 	#ifdef DEBUG
@@ -94,8 +94,8 @@ static int tp_mkdir(const char *path, mode_t mode){
 			parent_dir->dirent_c = new_c;
 			parent_dir->dirent_l[new_c] = avail_dirent;
 			
-			freemap_g.inode_free[avail_inode] = 0;											//remove free for avail_inode
-			freemap_g.dirent_free[avail_dirent] = 0;											//remove free for avail_dirent
+			freemap_g->inode_free[avail_inode] = 0;											//remove free for avail_inode
+			freemap_g->dirent_free[avail_dirent] = 0;											//remove free for avail_dirent
 		}
 		else{
 			return -ENOSPC;																							//no more dirents or inodes avail
@@ -106,6 +106,8 @@ static int tp_mkdir(const char *path, mode_t mode){
  * Almost same implementation as for mkdir, only change is that isDir is set to false
  * and a free data_block is associated to the inode
  */
+
+//max_dir_ent hasnt been taken care of
 static int tp_mknod(const char *path, mode_t mode, dev_t d){
 	
 	#ifdef DEBUG
@@ -138,9 +140,9 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		parent_dir->dirent_c = new_c;
 		parent_dir->dirent_l[new_c] = avail_dirent;
 
-		freemap_g.inode_free[avail_inode] = 0;
-		freemap_g.dirent_free[avail_dirent] = 0;
-		freemap_g.datablk_free[avail_datablk] = 0;
+		freemap_g->inode_free[avail_inode] = 0;
+		freemap_g->dirent_free[avail_dirent] = 0;
+		freemap_g->datablk_free[avail_datablk] = 0;
 	}
 	else{
 		return -ENOSPC;																								//no more space avail
@@ -251,7 +253,22 @@ static struct fuse_operations tp_operations = {
 
 
 int main(int argc, char *argv[]){
-	`
+	
+	TPFS = calloc(1,TPFS_SIZE);
+
+	freemap_g = (FREEMAP *)TPFS;
+	inode_g = (INODE *)(TPFS+INODE_OFF);
+	dirent_g = (DIRENT *)(TPFS+DIRENT_OFF);
+	datablk_g = (DATA_BLOCK *)(TPFS+DATABLK_OFF);
+	
+	FILE *pers_file = fopen("pers_tpfs","r+");
+
+	freemap_initialise(pers_file);
+	inode_initialise(pers_file);
+	dirent_initialise(pers_file);
+	datablk_initialise(pers_file);
+
+	
 }
 
 
