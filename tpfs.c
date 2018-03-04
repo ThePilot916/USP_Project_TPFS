@@ -63,6 +63,7 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 	}
 }
 
+
 //max_dir_ent hasnt been taken care of
 static int tp_mkdir(const char *path, mode_t mode){
 	
@@ -90,7 +91,8 @@ static int tp_mkdir(const char *path, mode_t mode){
 			strcpy(new_dir->file_name,new_name);
 			new_dir->inode_num = avail_inode;
 			new_dir->dirent_c = 0;
-			
+			new_dir->dirent_num = avail_dirent;
+
 			parent_dir->dirent_c = new_c;
 			parent_dir->dirent_l[new_c] = avail_dirent;
 			
@@ -190,6 +192,7 @@ static int tp_read(const char *path, char *buf, size_t size, off_t off, struct f
 	}
 	else{
 		size_t act_len;
+		act_len = inode->size;
 		if(off < act_len){
 			act_len = inode->size;
 			if(off+size > act_len){
@@ -267,7 +270,7 @@ int main(int argc, char *argv[]){
 	inode_initialise(pers_file);
 	dirent_initialise(pers_file);
 	datablk_initialise(pers_file);
-
+	
 	
 }
 

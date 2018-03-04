@@ -57,6 +57,7 @@ typedef struct dirent{
 	int dirent_l[DIRENT_PER_DIR];					//list of entries assosciated to their direct_g index
 	int dirent_c;													//number of entries present;
 	int inode_num;												//inode associated to the current dirent
+	int dirent_num;												//index where current dirent is at
 }DIRENT;
 
 typedef struct data_block{
@@ -146,9 +147,9 @@ int dirent_initialise(FILE *fp);
 int datablk_initialise(FILE *fp);
 int freemap_initialise(FILE *fp);
 
-int inode_write(FILE *fp,off_t off,INODE *buff);
-int dirent_write(FILE *fp,off_t off,DIRENT *buff);
-int datablk_write(FILE *fp,off_t off,char *buff);
-int freemap_write(FILE *fp,off_t off,FREEMAP *buff);
+int inode_write(FILE *fp,int offset,INODE *buff);				//offset here indicates the index number
+int dirent_write(FILE *fp,int offset,DIRENT *buff);
+int datablk_write(FILE *fp,int offset,DATA_BLOCK *buff);
+int freemap_write(FILE *fp);
 
 #endif
