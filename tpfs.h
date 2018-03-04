@@ -111,6 +111,9 @@ static int *tp_init(struct fuse_conn_info *conn, struct fuse_config *cfg);
 int get_dirent(DIRENT *dirent, char *path);
 int get_inode(INODE *inode, char *path);
 char* get_dirent_parent(DIRENT *dirent, char *path);
+int get_inode_free();
+int get_dirent_free();
+int get_datablk_free();
 
 /*
  *
@@ -127,9 +130,5 @@ int inode_write(FILE *fp,off_t off,INODE *buff);
 int dirent_write(FILE *fp,off_t off,DIRENT *buff);
 int datablk_write(FILE *fp,off_t off,char *buff);
 int freemap_write(FILE *fp,off_t off,FREEMAP *buff);
-
-int get_inode_free();
-int get_dirent_free();
-int get_datablk_free();
 
 #endif

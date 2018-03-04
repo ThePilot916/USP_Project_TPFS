@@ -205,14 +205,54 @@ static int tp_read(const char *path, char *buf, size_t size, off_t off, struct f
 
 static int tp_write(const char *path, const char *buf, size_t size, off_t off, struct fuse_file_info *fi){
 	
-
+	#ifdef DEBUG
+		printf("write: %s\n",path);
+	#endif
+	(void) fi;
+	INODE *inode;
+	int ino_res = get_inode(inode,path);
+	if(ino_res == 1){
+		return -EISDIR;
+	}
+	if(ino_res == -1){
+		return -ENOENT;
+	}
+	else{
+		size_t ip_size = sizeof(char)*strlen(buf);
+		if(off < BLOCK_SIZE){
+			size_t wr_size_avail = BLOCK_SIZE-off;
+			if(ip_size > wr_size_avial){
+				size = wr_size_avail;
+			}
+			else{
+				size = ip_size;
+			}
+			DATA_BLOCK *datablk = &datablk_g[inode->block_off];
+			memcpy((datablk)+off,buf,size);
+		}
+		else{
+			size = 0;
+		}
+	}
+	return size;
 }
 
 
+static struct fuse_operations tp_operations = {
+	.init = tp_init,
+	.getattr = tp_getattr,
+	.readdir = tp_readdir,
+	.mkdir = tp_mkdir,
+	.mknod = tp_mknod,
+	.open = tp_open,
+	.read = tp_read,
+	.write = tp_write,
+};
 
 
-
-
+int main(int argc, char *argv[]){
+	`
+}
 
 
 

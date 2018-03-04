@@ -53,6 +53,7 @@ int get_dirent(DIRENT *dirent,char *path){
 	}
 }
 
+
 int get_inode(INODE *inode, char *path){
 	#ifdef DEBUG
 		printf("get_inode: %s\n",path);
@@ -61,7 +62,7 @@ int get_inode(INODE *inode, char *path){
 	int dircheck = get_dirent(temp,path);
 	if(dircheck == 0 || dircheck == 1){
 		inode = &inode_g[temp->inode_num];							//something is wrong
-		return 0;
+		return dircheck;
 	}
 	else{
 		return -1;
