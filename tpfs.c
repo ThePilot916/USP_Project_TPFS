@@ -6,6 +6,7 @@ static int *tp_init(struct fuse_conn_info *conn, struct fuse_config *cfg){
 		printf("Initialising ThePilotFileSystem\n");
 	#endif
 	//all the initialise calls should happen here
+        return NULL;
 }
 
 
