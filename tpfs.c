@@ -1,14 +1,5 @@
 #include "tpfs.h"
 
-static int *tp_init(struct fuse_conn_info *conn, struct fuse_config *cfg){
-	
-	#ifdef DEBUG
-		printf("Initialising ThePilotFileSystem\n");
-	#endif
-	//all the initialise calls should happen here
-        return NULL;
-}
-
 
 static int tp_getattr(const char *path, struct stat *stbuf, struc fuse_file_info *fi){
 	
@@ -248,7 +239,7 @@ static int tp_write(const char *path, const char *buf, size_t size, off_t off, s
 
 
 static struct fuse_operations tp_operations = {
-	.init = tp_init,
+	
 	.getattr = tp_getattr,
 	.readdir = tp_readdir,
 	.mkdir = tp_mkdir,
