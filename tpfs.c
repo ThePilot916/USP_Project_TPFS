@@ -221,7 +221,7 @@ static int tp_write(const char *path, const char *buf, size_t size, off_t off, s
 		size_t ip_size = sizeof(char)*strlen(buf);
 		if(off < BLOCK_SIZE){
 			size_t wr_size_avail = BLOCK_SIZE-off;
-			if(ip_size > wr_size_avial){
+			if(ip_size > wr_size_avail){
 				size = wr_size_avail;
 			}
 			else{
