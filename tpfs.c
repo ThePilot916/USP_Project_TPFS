@@ -48,7 +48,7 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 		printf("ReadDir => %s\n",path);
 	#endif
 	
-	(void) offset;
+	(void) off;
 	(void) fi;
 	(void) flags;
 	DIRENT *temp;
