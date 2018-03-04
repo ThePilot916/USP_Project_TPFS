@@ -10,7 +10,7 @@ static int *tp_init(struct fuse_conn_info *conn, struct fuse_config *cfg){
 }
 
 
-static int tp_getattr(const char *path, struct stat *buf, struc fuse_file_info *fi){
+static int tp_getattr(const char *path, struct stat *stbuf, struc fuse_file_info *fi){
 	
 	#ifdef DEBUG
 		printf("GetAttr => %s\n",path);
