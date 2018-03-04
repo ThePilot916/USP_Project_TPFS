@@ -1,5 +1,5 @@
-#ifndef TPFS
-#define TPFS
+#ifndef DEFINED
+#define DEFINED
 
 //#define DEBUG inorder to debug
 
