@@ -1,5 +1,5 @@
-#ifndef DEFINED
-#define DEFINED
+#ifndef TPFS
+#define TPFS
 
 //#define DEBUG inorder to debug
 
@@ -21,31 +21,18 @@
 #include <stdbool.h>
 #include <fcntl.h>
 
-
-/*
- *
- *
- *Notation info: 
- *	_l -> list of its prefix
- *	_c -> count of its prefix
- *	_g -> prefix is of type global
- *
- *
- */
-
-
 #define BLOCK_SIZE 4096
 
 #define DIRENT_PER_DIR 10										//entries per directory
 #define DIRENT_MAX	50											//Max number of dirents allowed
-#define INODE_MAX (DIRENT_MAX*DIRENT_PER_DIR)		//Max number of GLOBAL inodes
+#define INODE_MAX (DIRENT*DIRENT_PER_DIR)		//Max number of GLOBAL inodes
 #define DATA_BLOCKS (INODE_MAX)							//Total number of data_blocks available
 #define FILE_NAME_MAX 256										//Dirent_filename max size
 
-char *TPFS;																	//Whole of the filesystem
+
 
 typedef struct inode{
-	int inode_num;												//index where current inode is
+
 	bool is_dir;
 	int block_off;												//offset value to data_block from datablock begin, begin will be different if its a directory, it'll give data_block to the dirent instead.
 	int block_n;													//number of data_blocks being used by it, currently useless
@@ -57,7 +44,6 @@ typedef struct dirent{
 	int dirent_l[DIRENT_PER_DIR];					//list of entries assosciated to their direct_g index
 	int dirent_c;													//number of entries present;
 	int inode_num;												//inode associated to the current dirent
-	int dirent_num;												//index where current dirent is at
 }DIRENT;
 
 typedef struct data_block{
@@ -69,12 +55,6 @@ typedef struct freemap{
 	int dirent_free[DIRENT_MAX];
 	int datablk_free[DATA_BLOCKS];
 }FREEMAP;
-
-
-FREEMAP *freemap_g;	
-INODE *inode_g;							//0th inode_g is root	always
-DIRENT *dirent_g;						//0th dirent_g is root always
-DATA_BLOCK *datablk_g;
 
 
 /*
@@ -146,10 +126,9 @@ int dirent_initialise(FILE *fp);
 int datablk_initialise(FILE *fp);
 int freemap_initialise(FILE *fp);
 
-int inode_write(FILE *fp,int offset,INODE *buff);				//offset here indicates the index number
-int dirent_write(FILE *fp,int offset,DIRENT *buff);
-int datablk_write(FILE *fp,int offset,DATA_BLOCK *buff);
-int freemap_write(FILE *fp);
+int inode_write(FILE *fp,off_t off,INODE *buff);
+int dirent_write(FILE *fp,off_t off,DIRENT *buff);
+int datablk_write(FILE *fp,off_t off,char *buff);
+int freemap_write(FILE *fp,off_t off,FREEMAP *buff);
 
-int tpfs_to_disk(FILE *fp);
 #endif

@@ -1,4 +1,4 @@
-#include "tpfs.h"	
+#include "tpfs.h"
 
 /*
  * get_dirent updates the dirent pointer passed to the dirent for the given path
@@ -12,22 +12,21 @@ int get_dirent(DIRENT *dirent,char *path){
 		printf("get_dirent: %s\n",path);
 	#endif
 	if(strcmp(path,"/")==0){
-		dirent = &dirent_g[0];
+		dirent = root_dir;
 		return 1;
 	}
 	else{
 		char *token = strtok(path,"/");
-		DIRENT *parent = &dirent_g[0];
+		DIRENT *parent = root_dir;
 		while(token != NULL){
 				#ifdef DEBUGx2
 					printf("get_dirent: %s\n",parent->file_name);
 				#endif
-				int flag = 0;
 				for(int i = 0; i < parent->dirent_c; i++){
 					#ifdef DEBUGx2
 						printf("child no: %d\n",i);
 					#endif
-					if(freemap_g->dirent_free[parent->dirent_l[i]] == 1){															//the block matched has been free'd, so invalid and return
+					if(freemaps.dirent_free[parent->dirent_l[i]] == 1){
 						return -1;
 					}
 					DIRENT *child = &dirent_g[parent->dirent_l[i]];
@@ -36,12 +35,11 @@ int get_dirent(DIRENT *dirent,char *path){
 					#endif
 					if(child->file_name != NULL && strcmp(child->file_name,token)==0){
 						parent = child;
-						flag = 1;
 					}
-				}
-				if(flag == 0){
-					printf("Invalid path\n");
-					return -1;
+					else{
+						printf("Invalid path\n");
+						return -1;
+					}
 				}
 				token = strtok(NULL,"/");
 		}
@@ -54,8 +52,6 @@ int get_dirent(DIRENT *dirent,char *path){
 		}
 	}
 }
-
-
 
 
 int get_inode(INODE *inode, char *path){
@@ -73,13 +69,7 @@ int get_inode(INODE *inode, char *path){
 	}
 }
 
-
-
-
-/*
- *Return char string of the new path(only the new filename)
- */
-
+//Return char string of the new path(only the new filename)
 char* get_dirent_parent(DIRENT *dirent, char *path){
 	#ifdef DEBUG
 		printf("get_dirent_parent: %s\n",path);
@@ -108,11 +98,9 @@ char* get_dirent_parent(DIRENT *dirent, char *path){
 	return new;
 }
 
-
-
 int get_inode_free(){
 	for(i = 0; i < INODE_MAX; i++){
-		if(freemap_g->inode_free[i] == 1){
+		if(freemap_g.inode_free[i] == 1){
 			return i;
 		}
 	}
@@ -121,11 +109,9 @@ int get_inode_free(){
 	}
 }
 
-
-
 int get_dirent_free(){
 	for(i = 0; i < DIRENT_MAX; i++){
-		if(freemap_g->dirent_free[i] == 1){
+		if(freemap_g.dirent_free[i] == 1){
 			return i;
 		}
 	}
@@ -134,11 +120,9 @@ int get_dirent_free(){
 	}
 }
 
-
-
 int get_data_blk_free(){
 	for(i = 0; i < INODE_MAX; i++){
-		if(freemap_g->datablk_free[i] == 1){
+		if(freemap_g.datablk_free[i] == 1){
 			return i;
 		}
 	}
@@ -146,120 +130,3 @@ int get_data_blk_free(){
 		return -1;
 	}
 }
-
-
-/*
- *
- *
- *Persistence helpers
- *
- *
- */
-
-int inode_initialise(FILE *fp){
-	if(fp != NULL){																			//pers_tpfs found, initialise inode_g with the contents of the pers file
-		FILE *temp_fp = fp;
-		fseek(temp_fp,INODE_OFF,SEEK_SET);
-		fread(inode_g,sizeof(INODE),INODE_MAX,temp_fp);
-	}
-																											// else dont do shit
-}
-
-int dirent_initialise(FILE *fp){
-	if(fp != NULL){
-		FILE *temp_fp = fp;
-		fseek(temp_fp,DIRENT_OFF,SEEK_SET);
-		fread(dirent_g,sizeof(DIRENT),DIRENT_MAX,temp_fp);
-	}
-																											//again if not present dont do shit
-}
-
-int datablk_initialise(FILE *fp){
-	if(fp != NULL){
-		FILE *temp_fp = fp;
-		fseek(temp_fp,DATABLK_OFF,SEEK_SET);
-		fread(datablk_g,sizeof(DATA_BlOCK),DATA_BLOCKS,temp_fp);
-	}
-																											//dont do shit
-}
-
-int freemap_initialise(FILE *fp){
-	if(fp != NULL){
-		FILE *temp_fp = fp;
-		fseek(temp_fp,FREEMAP_OFF,SEEK_SET);
-		fread(freemap_g,sizeof(FREEMAP),1,temp_fp);
-	}
-																											//actually don't do shit here also
-																											//calloc is initialising this for us already xD
-}
-
-
-/*
- *
- * all of these write will write individual entry passed to the file
- *
- */
-
-int inode_write(FILE *fp, int offset, INODE *buff){
-	FILE *temp_fp = fp;
-	int seek_offset = INODE_OFF+offset;
-	fseek(temp_fp,seek_offset,SEEK_SET);
-	fwrite(buff,sizeof(INODE),1,temp_fp);
-}
-
-int dirent_write(FILE *fp, int offset, DIRENT *buff){
-	FILE *temp_fp = fp;
-	int seek_offset = DIRENT_OFF+offset;
-	fseek(temp_fp,seek_offset,SEEK_SET);
-	fwrite(buff,sizeof(DIRENT),1,temp_fp);
-}
-
-int datablk_write(FILE *fp, int offset,DATA_BLOCK *buff){
-	FILE *temp_fp = fp;
-	int seek_offset = DATABLK_OFF+offset;
-	fseek(temp_fp,seek_offset,SEEK_SET);
-	fwrite(buff,sizeof(DATA_BLOCK),1,temp_fp);
-}
-
-
-int freemap_write(FILE *fp){
-	FILE *temp_fp = fp;
-	int seek_offset = FREEMAP_OFF;
-	fseek(temp_fp,seek_offset,SEEK_SET);
-	fwrite(freemap_g,sizeof(FREEMAP),1,temp_fp);
-}
-
-
-
-/*
- *
- * This function should write whole of the filesystem
- *
- */
-
-
-int tpfs_to_disk(FILE *fp){
-	FILE *temp_fp = fp;
-	int seek_offset = 0;
-	fseek(temp_fp,seek_offset,SEEK_SET);
-	fwrite(TPFS,sizeof(char),TPFS_SIZEm,temp_fp);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

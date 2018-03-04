@@ -1,7 +1,15 @@
 #include "tpfs.h"
 
+static int *tp_init(struct fuse_conn_info *conn, struct fuse_config *cfg){
+	
+	#ifdef DEBUG
+		printf("Initialising ThePilotFileSystem\n");
+	#endif
+	//all the initialise calls should happen here
+}
 
-static int tp_getattr(const char *path, struct stat *stbuf, struc fuse_file_info *fi){
+
+static int tp_getattr(const char *path, struct stat *buf, struc fuse_file_info *fi){
 	
 	#ifdef DEBUG
 		printf("GetAttr => %s\n",path);
@@ -39,7 +47,7 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 		printf("ReadDir => %s\n",path);
 	#endif
 	
-	(void) off;
+	(void) offset;
 	(void) fi;
 	(void) flags;
 	DIRENT *temp;
@@ -56,7 +64,6 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 }
 
 
-//max_dir_ent hasnt been taken care of
 static int tp_mkdir(const char *path, mode_t mode){
 	
 	#ifdef DEBUG
@@ -74,7 +81,6 @@ static int tp_mkdir(const char *path, mode_t mode){
 			
 			INODE *new_inode;
 			new_inode = &inode_g[avail_inode];
-			new_inode->inode_num = avail_inode;
 			new_inode->is_dir = true;
 			new_inode->block_off = avail_dirent;
 			new_inode->block_n = 1;
@@ -84,13 +90,12 @@ static int tp_mkdir(const char *path, mode_t mode){
 			strcpy(new_dir->file_name,new_name);
 			new_dir->inode_num = avail_inode;
 			new_dir->dirent_c = 0;
-			new_dir->dirent_num = avail_dirent;
-
+			
 			parent_dir->dirent_c = new_c;
 			parent_dir->dirent_l[new_c] = avail_dirent;
 			
-			freemap_g->inode_free[avail_inode] = 0;											//remove free for avail_inode
-			freemap_g->dirent_free[avail_dirent] = 0;											//remove free for avail_dirent
+			freemap_g.inode_free[avail_inode] = 0;											//remove free for avail_inode
+			freemap_g.dirent_free[avail_dirent] = 0;											//remove free for avail_dirent
 		}
 		else{
 			return -ENOSPC;																							//no more dirents or inodes avail
@@ -101,8 +106,6 @@ static int tp_mkdir(const char *path, mode_t mode){
  * Almost same implementation as for mkdir, only change is that isDir is set to false
  * and a free data_block is associated to the inode
  */
-
-//max_dir_ent hasnt been taken care of
 static int tp_mknod(const char *path, mode_t mode, dev_t d){
 	
 	#ifdef DEBUG
@@ -121,7 +124,6 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		
 		INODE *new_inode;
 		new_inode = &inode_g[avail_inode];
-		new_inode->inode_num = avail_inode;
 		new_inode->is_dir = false;
 		new_inode->block_off = avail_datablk;
 		new_inode->block_n = 1;
@@ -131,15 +133,14 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		new_dir = &dirent_g[avail_dirent];
 		strcpy(new_dir->file_name, new_name);
 		new_dir->inode_num = avail_inode;
-		new_dir->dirent_num = avail_dirent;
 		new_dir ->dirent_c = 0;
 
 		parent_dir->dirent_c = new_c;
 		parent_dir->dirent_l[new_c] = avail_dirent;
 
-		freemap_g->inode_free[avail_inode] = 0;
-		freemap_g->dirent_free[avail_dirent] = 0;
-		freemap_g->datablk_free[avail_datablk] = 0;
+		freemap_g.inode_free[avail_inode] = 0;
+		freemap_g.dirent_free[avail_dirent] = 0;
+		freemap_g.datablk_free[avail_datablk] = 0;
 	}
 	else{
 		return -ENOSPC;																								//no more space avail
@@ -221,7 +222,7 @@ static int tp_write(const char *path, const char *buf, size_t size, off_t off, s
 		size_t ip_size = sizeof(char)*strlen(buf);
 		if(off < BLOCK_SIZE){
 			size_t wr_size_avail = BLOCK_SIZE-off;
-			if(ip_size > wr_size_avail){
+			if(ip_size > wr_size_avial){
 				size = wr_size_avail;
 			}
 			else{
@@ -239,7 +240,7 @@ static int tp_write(const char *path, const char *buf, size_t size, off_t off, s
 
 
 static struct fuse_operations tp_operations = {
-	
+	.init = tp_init,
 	.getattr = tp_getattr,
 	.readdir = tp_readdir,
 	.mkdir = tp_mkdir,
@@ -251,39 +252,7 @@ static struct fuse_operations tp_operations = {
 
 
 int main(int argc, char *argv[]){
-	
-	TPFS = calloc(1,TPFS_SIZE);							//init with 1 because freemap is auto initialised by this
-
-	freemap_g = (FREEMAP *)TPFS;
-	inode_g = (INODE *)(TPFS+INODE_OFF);
-	dirent_g = (DIRENT *)(TPFS+DIRENT_OFF);
-	datablk_g = (DATA_BLOCK *)(TPFS+DATABLK_OFF);
-	
-	FILE *pers_file = fopen("pers_tpfs","r+");
-
-	freemap_initialise(pers_file);
-	inode_initialise(pers_file);
-	dirent_initialise(pers_file);
-	datablk_initialise(pers_file);
-
-	if(pers_file == NULL){									//create a new file if its not present(fresh init)
-		pers_file = fopen("pers_tpfs","w+");
-		DIRENT *root_dir = &dirent_g[0];
-		INODE *root_inode = &inode_g[0];
-
-		root_dir->file_name[0] = "/";
-		root_dir->dirent_c = 0;
-		root_dir->dirent_num = 0;
-		root_dir->inode_num = 0;
-
-		root_inode->inode_num = 0;
-		root_inode->is_dir = true;
-
-		freemap_g->inode_free[0] = 0;
-		freemap_g->dirent_free[0] = 0;
-
-		return fuse_main(argc,argv,&tp_operations,NULL);
-	}
+	`
 }
 
 
