@@ -271,7 +271,7 @@ int main(int argc, char *argv[]){
 		DIRENT *root_dir = &dirent_g[0];
 		INODE *root_inode = &inode_g[0];
 
-		root_dir->file_name = "/";
+		root_dir->file_name[0] = "/";
 		root_dir->dirent_c = 0;
 		root_dir->dirent_num = 0;
 		root_dir->inode_num = 0;
