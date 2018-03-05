@@ -92,7 +92,7 @@ char* get_dirent_parent(DIRENT *dirent, char *path){
 		i--;
 	}
 	new = realloc(new,(sizeof(char)*r+1));
-	new[r+1] = '\0'
+	new[r+1] = '\0';
 	int new_len = i-r;
 	char *parent_path = (char *)malloc(sizeof(char)*new_len+1);
 	for(int j = 0; j < new_len; j++){
@@ -110,7 +110,8 @@ char* get_dirent_parent(DIRENT *dirent, char *path){
 
 
 
-int get_inode_free(){
+int get_inode_free(){ 
+	int i;
 	for(i = 0; i < INODE_MAX; i++){
 		if(freemap_g->inode_free[i] == 1){
 			return i;
@@ -124,6 +125,7 @@ int get_inode_free(){
 
 
 int get_dirent_free(){
+	int i;
 	for(i = 0; i < DIRENT_MAX; i++){
 		if(freemap_g->dirent_free[i] == 1){
 			return i;
@@ -136,7 +138,8 @@ int get_dirent_free(){
 
 
 
-int get_data_blk_free(){
+int get_datablk_free(){
+	int i;
 	for(i = 0; i < INODE_MAX; i++){
 		if(freemap_g->datablk_free[i] == 1){
 			return i;
@@ -157,7 +160,8 @@ int get_data_blk_free(){
  */
 
 int inode_initialise(FILE *fp){
-	if(fp != NULL){																			//pers_tpfs found, initialise inode_g with the contents of the pers file
+	if(fp != NULL){			
+		printf("Init from file");																//pers_tpfs found, initialise inode_g with the contents of the pers file
 		FILE *temp_fp = fp;
 		fseek(temp_fp,INODE_OFF,SEEK_SET);
 		fread(inode_g,sizeof(INODE),INODE_MAX,temp_fp);
@@ -170,15 +174,14 @@ int dirent_initialise(FILE *fp){
 		FILE *temp_fp = fp;
 		fseek(temp_fp,DIRENT_OFF,SEEK_SET);
 		fread(dirent_g,sizeof(DIRENT),DIRENT_MAX,temp_fp);
-	}
-																											//again if not present dont do shit
+	}																										//again if not present dont do shit
 }
 
 int datablk_initialise(FILE *fp){
 	if(fp != NULL){
 		FILE *temp_fp = fp;
 		fseek(temp_fp,DATABLK_OFF,SEEK_SET);
-		fread(datablk_g,sizeof(DATA_BlOCK),DATA_BLOCKS,temp_fp);
+		fread(datablk_g,sizeof(struct data_block),DATA_BLOCKS,temp_fp);
 	}
 																											//dont do shit
 }
@@ -194,7 +197,7 @@ int freemap_initialise(FILE *fp){
 			freemap_g->inode_free[i] = 1;
 		}
 		for(int i = 0; i < DIRENT_MAX; i++){
-			fremap_g->dirent_free[i] = 1;
+			freemap_g->dirent_free[i] = 1;
 		}
 		for(int i = 0; i < DATA_BLOCKS; i++){
 			freemap_g->datablk_free[i] = 1;
@@ -253,7 +256,7 @@ int tpfs_to_disk(FILE *fp){
 	FILE *temp_fp = fp;
 	int seek_offset = 0;
 	fseek(temp_fp,seek_offset,SEEK_SET);
-	fwrite(TPFS,sizeof(char),TPFS_SIZEm,temp_fp);
+	fwrite(TPFS,sizeof(char),TPFS_SIZE,temp_fp);
 }
 
 

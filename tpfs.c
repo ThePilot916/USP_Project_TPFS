@@ -1,7 +1,6 @@
 #include "tpfs.h"
 
-
-static int tp_getattr(const char *path, struct stat *stbuf, struc fuse_file_info *fi){
+static int tp_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi){
 	
 	#ifdef DEBUG
 		printf("GetAttr => %s\n",path);
@@ -31,28 +30,26 @@ static int tp_getattr(const char *path, struct stat *stbuf, struc fuse_file_info
 	else{
 		return -ENOENT;
 	}
+	return 0;
 }
 
-static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off, struct fuse_file_info *fi, enum fuse_readdir_flags flags){
-	
-	#ifdef DEBUG
-		printf("ReadDir => %s\n",path);
-	#endif
+static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off, struct fuse_file_info *fi){
+	printf("ReadDir => %s\n",path);
 	
 	(void) off;
 	(void) fi;
-	(void) flags;
 	DIRENT *temp;
 	if(get_dirent(temp, path) != 0){
 		return -ENOENT;
 	}
 	else{
-		filler(buf,".",NULL,0,0);
-		filler(buf,"..",NULL,0,0);
+		filler(buf,".",NULL,0);
+		filler(buf,"..",NULL,0);
 		for(int i = 0; i < temp->dirent_c; i++){
-			filler(buf,dirent_g[temp->dirent_l[i]].file_name,NULL,0,0);
+			filler(buf,dirent_g[temp->dirent_l[i]].file_name,NULL,0);
 		}
 	}
+	return 0;
 }
 
 
@@ -64,8 +61,9 @@ static int tp_mkdir(const char *path, mode_t mode){
 	#endif
 	
 		DIRENT *parent_dir;
+		printf("Before the dirent call\n");
 		char *new_name = get_dirent_parent(parent_dir,path);					//return ENOTDIR if dir_check = 0
-		
+		printf("file name: %s\n",new_name);
 		int avail_dirent = get_dirent_free();
 		int avail_inode = get_inode_free();
 
@@ -95,6 +93,7 @@ static int tp_mkdir(const char *path, mode_t mode){
 		else{
 			return -ENOSPC;																							//no more dirents or inodes avail
 		}
+	return 0;
 }
 
 /*
@@ -144,6 +143,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 	else{
 		return -ENOSPC;																								//no more space avail
 	}
+	return 0;
 }
 
 
@@ -166,6 +166,7 @@ static int tp_open(const char *path, struct fuse_file_info *fi){
 		
 		return 0;
 	}
+	return 0;
 
 }
 
@@ -203,7 +204,7 @@ static int tp_read(const char *path, char *buf, size_t size, off_t off, struct f
 	return size;
 }
 
-static int tp_write(const char *path, const char *buf, size_t size, off_t off, struct fuse_file_info *fi){
+int tp_write(const char *path, const char *buf, size_t size, off_t off, struct fuse_file_info *fi){
 	
 	#ifdef DEBUG
 		printf("write: %s\n",path);
@@ -236,15 +237,13 @@ static int tp_write(const char *path, const char *buf, size_t size, off_t off, s
 	}
 	return size;
 }
-
-
 static struct fuse_operations tp_operations = {
-	
 	.getattr = tp_getattr,
+	.open = tp_open,
 	.readdir = tp_readdir,
+	//.init = tp_init,
 	.mkdir = tp_mkdir,
 	.mknod = tp_mknod,
-	.open = tp_open,
 	.read = tp_read,
 	.write = tp_write,
 };
@@ -253,25 +252,23 @@ static struct fuse_operations tp_operations = {
 int main(int argc, char *argv[]){
 	
 	TPFS = calloc(1,TPFS_SIZE);							//init with 1 because freemap is auto initialised by this
-
 	freemap_g = (FREEMAP *)TPFS;
 	inode_g = (INODE *)(TPFS+INODE_OFF);
 	dirent_g = (DIRENT *)(TPFS+DIRENT_OFF);
 	datablk_g = (DATA_BLOCK *)(TPFS+DATABLK_OFF);
 	
 	FILE *pers_file = fopen("pers_tpfs","r+");
-
 	freemap_initialise(pers_file);
 	inode_initialise(pers_file);
 	dirent_initialise(pers_file);
 	datablk_initialise(pers_file);
-
-	if(pers_file == NULL){									//create a new file if its not present(fresh init)
+	if(pers_file == NULL){		
+		printf("Creating a new file");							//create a new file if its not present(fresh init)
 		pers_file = fopen("pers_tpfs","w+");
 		DIRENT *root_dir = &dirent_g[0];
 		INODE *root_inode = &inode_g[0];
 
-		root_dir->file_name[0] = "/";
+		root_dir->file_name[0] = '/';
 		root_dir->dirent_c = 0;
 		root_dir->dirent_num = 0;
 		root_dir->inode_num = 0;
@@ -281,9 +278,12 @@ int main(int argc, char *argv[]){
 
 		freemap_g->inode_free[0] = 0;
 		freemap_g->dirent_free[0] = 0;
-
-		return fuse_main(argc,argv,&tp_operations,NULL);
 	}
+	else
+	{
+		printf("Not creating a new file");
+	}
+	return fuse_main(argc,argv,&tp_operations,NULL);
 }
 
 

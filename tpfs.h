@@ -2,24 +2,20 @@
 #define DEFINED
 
 //#define DEBUG inorder to debug
+#define DEBUG
 
 /*
  * Change to 30 if this doesn't work
  */
 
-#define USE_FUSE_VERSION 31
+#define USE_FUSE_VERSION 30
 
 #include <fuse.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/time.h>
 #include <stdbool.h>
-#include <fcntl.h>
 
 
 /*
@@ -113,15 +109,15 @@ DATA_BLOCK *datablk_g;
 static int tp_create(const char *path, mode_t mode, struct fuse_file_info *fi);
 static int tp_open(const char *path, struct fuse_file_info *fi);
 static int tp_read(const char *path, char *buf, size_t size, off_t off, struct fuse_file_info *fi);
-static int tp_write(const char *path, const char *buf, size_t size, off_t off, struct fuse_file_info *fi);
+int tp_write(const char *path, const char *buf, size_t size, off_t off, struct fuse_file_info *fi);
 
 static int tp_getattr(const char *path, struct stat *buf, struct fuse_file_info *fi);
 static int tp_opendir( const char *path, struct fuse_file_info *fi);
-static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t off, struct fuse_file_info *fi, enum fuse_readdir_flags flags);
+static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t offset, struct fuse_file_info *fi);
 static int tp_mknod(const char *path, mode_t mode, dev_t rdev);
 static int tp_mkdir(const char *path, mode_t mode);
 
-static int *tp_init(struct fuse_conn_info *conn, struct fuse_config *cfg);
+int tp_init(struct fuse_conn_info *, struct fuse_config *);
 
 
 /*
