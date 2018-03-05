@@ -80,34 +80,41 @@ int get_inode(INODE *inode, char *path){
  *Return char string of the new path(only the new filename)
  */
 
+
 char* get_dirent_parent(DIRENT *dirent, char *path){
-	#ifdef DEBUG
 		printf("get_dirent_parent: %s\n",path);
-	#endif
 	char *new = (char *)malloc(sizeof(char)*strlen(path));
+	printf("1\n");
 	int i = strlen(path)-1;
+	int total_len=i;
+	printf("2\n");
 	int r = 0;
 	while(path[i] != '/'){
+		printf("3\n");
 		new[r++] = path[i];
 		i--;
 	}
+	printf("4\n");
 	new = realloc(new,(sizeof(char)*r+1));
 	new[r+1] = '\0';
-	int new_len = i-r;
+	printf("5\n");
+	int new_len = total_len-r;
 	char *parent_path = (char *)malloc(sizeof(char)*new_len+1);
+	printf("6\n");
 	for(int j = 0; j < new_len; j++){
 		parent_path[j] = path[j];
 	}
+	printf("7\n");
 	parent_path[new_len] = '\0';
 	if(parent_path[0] != '/'){
 		parent_path = realloc(parent_path,sizeof(char)*2);
 		parent_path[0] = '/';
 		parent_path[1] = '\0';
 	}
+	printf("8\n");
 	int dircheck = get_dirent(dirent, parent_path);
 	return new;
 }
-
 
 
 int get_inode_free(){ 
