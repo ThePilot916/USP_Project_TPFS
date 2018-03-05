@@ -189,6 +189,17 @@ int freemap_initialise(FILE *fp){
 		fseek(temp_fp,FREEMAP_OFF,SEEK_SET);
 		fread(freemap_g,sizeof(FREEMAP),1,temp_fp);
 	}
+	else{
+		for(int i = 0; i < INODE_MAX; i++){
+			freemap_g->inode_free[i] = 1;
+		}
+		for(int i = 0; i < DIRENT_MAX; i++){
+			fremap_g->dirent_free[i] = 1;
+		}
+		for(int i = 0; i < DATA_BLOCKS; i++){
+			freemap_g->datablk_free[i] = 1;
+		}
+	}
 																											//actually don't do shit here also
 																											//calloc is initialising this for us already xD
 }
