@@ -55,7 +55,6 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 
 //max_dir_ent hasnt been taken care of
 static int tp_mkdir(const char *path, mode_t mode){
-	
 	#ifdef DEBUG
 		printf("mkdir: %s\n",path);
 	#endif
@@ -64,21 +63,22 @@ static int tp_mkdir(const char *path, mode_t mode){
 		printf("Before the dirent call\n");
 		char *new_name = get_dirent_parent(parent_dir,path);					//return ENOTDIR if dir_check = 0
 		printf("file name: %s\n",new_name);
+
 		int avail_dirent = get_dirent_free();
 		int avail_inode = get_inode_free();
-
-		if(avail_dirent >= 0  && avail_inode >= 0){
+		printf("%s\n", new_name);
+		if(avail_dirent >= 0 && avail_inode >= 0){
 			int new_c = parent_dir->dirent_c + 1;
 			
 			INODE *new_inode;
-			new_inode = inode_g+avail_inode;
+			new_inode = &inode_g[avail_inode];
 			new_inode->inode_num = avail_inode;
 			new_inode->is_dir = true;
 			new_inode->block_off = avail_dirent;
 			new_inode->block_n = 1;
 			
 			DIRENT *new_dir;
-			new_dir = dirent_g+avail_dirent;
+			new_dir = &dirent_g[avail_dirent];
 			strcpy(new_dir->file_name,new_name);
 			new_dir->inode_num = avail_inode;
 			new_dir->dirent_c = 0;
@@ -93,6 +93,9 @@ static int tp_mkdir(const char *path, mode_t mode){
 		else{
 			return -ENOSPC;																							//no more dirents or inodes avail
 		}
+	return 0;
+	
+	printf("%s\n", path);
 	return 0;
 }
 
@@ -119,7 +122,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		int new_c = parent_dir->dirent_c + 1;
 		
 		INODE *new_inode;
-		new_inode = inode_g+avail_inode;
+		new_inode = &inode_g[avail_inode];
 		new_inode->inode_num = avail_inode;
 		new_inode->is_dir = false;
 		new_inode->block_off = avail_datablk;
@@ -127,7 +130,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		new_inode->size = 0;
 
 		DIRENT *new_dir;
-		new_dir = dirent_g+avail_dirent;
+		new_dir = &dirent_g[avail_dirent];
 		strcpy(new_dir->file_name, new_name);
 		new_dir->inode_num = avail_inode;
 		new_dir->dirent_num = avail_dirent;

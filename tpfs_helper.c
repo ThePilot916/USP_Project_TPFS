@@ -8,22 +8,29 @@
  */
 
 int get_dirent(DIRENT *dirent,char *path){
-	#ifdef DEBUG
-		printf("get_dirent: %s\n",path);
-	#endif
+		printf("get_dirent: %s   %d   %d\n",path, strlen(path),strcmp(path,"/"));
+		printf("check 1\n");
 	if(strcmp(path,"/")==0){
 		dirent = &dirent_g[0];
+			printf("check 2\n");
+
 		return 1;
 	}
 	else{
+		printf("check 3\n");
 		char *token = strtok(path,"/");
-		DIRENT *parent = &dirent_g[0];
+		DIRENT *parent = dirent_g;
+		printf("check 4\n");
 		while(token != NULL){
+					
 				#ifdef DEBUGx2
-					printf("get_dirent: %s\n",parent->file_name);
+					printf("get_dirent: %s   %d\n",parent->file_name, parent->dirent_c);
 				#endif
+				printf("check 5\n");
 				int flag = 0;
+				printf("check 6\n");
 				for(int i = 0; i < parent->dirent_c; i++){
+					printf("check 7\n");
 					#ifdef DEBUGx2
 						printf("child no: %d\n",i);
 					#endif
@@ -38,10 +45,6 @@ int get_dirent(DIRENT *dirent,char *path){
 						parent = child;
 						flag = 1;
 					}
-				}
-				if(flag == 0){
-					printf("Invalid path\n");
-					return -1;
 				}
 				token = strtok(NULL,"/");
 		}
@@ -80,40 +83,34 @@ int get_inode(INODE *inode, char *path){
  *Return char string of the new path(only the new filename)
  */
 
-
 char* get_dirent_parent(DIRENT *dirent, char *path){
 		printf("get_dirent_parent: %s\n",path);
-	char *new = (char *)malloc(sizeof(char)*strlen(path));
-	printf("1\n");
-	int i = strlen(path)-1;
+
+	char *newname = (char *)malloc(sizeof(char)*strlen(path));
+		int i = strlen(path)-1;
+
 	int total_len=i;
-	printf("2\n");
-	int r = 0;
+		int r = 0;
+
 	while(path[i] != '/'){
-		printf("3\n");
-		new[r++] = path[i];
 		i--;
 	}
-	printf("4\n");
-	new = realloc(new,(sizeof(char)*r+1));
-	new[r+1] = '\0';
-	printf("5\n");
-	int new_len = total_len-r;
-	char *parent_path = (char *)malloc(sizeof(char)*new_len+1);
-	printf("6\n");
-	for(int j = 0; j < new_len; j++){
+	int temp_i = i+1;
+	for(i+1;i<=total_len;i++)
+	{
+		newname[i-temp_i] = path[i]; 
+	}
+	newname[i-temp_i] = '\0';
+	printf("After reversing the string, %s", newname);
+		int new_len = total_len+1;
+	char *parent_path = (char *)malloc(sizeof(char)*new_len);
+	int j;
+	for(j = 0; j < temp_i; j++){
 		parent_path[j] = path[j];
 	}
-	printf("7\n");
-	parent_path[new_len] = '\0';
-	if(parent_path[0] != '/'){
-		parent_path = realloc(parent_path,sizeof(char)*2);
-		parent_path[0] = '/';
-		parent_path[1] = '\0';
-	}
-	printf("8\n");
+	parent_path[j]='\0';
 	int dircheck = get_dirent(dirent, parent_path);
-	return new;
+	return newname;
 }
 
 

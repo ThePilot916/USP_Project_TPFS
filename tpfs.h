@@ -3,6 +3,7 @@
 
 //#define DEBUG inorder to debug
 #define DEBUG
+#define DEBUGx2
 
 /*
  * Change to 30 if this doesn't work
