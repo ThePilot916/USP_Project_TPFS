@@ -71,14 +71,14 @@ static int tp_mkdir(const char *path, mode_t mode){
 			int new_c = parent_dir->dirent_c + 1;
 			
 			INODE *new_inode;
-			new_inode = &inode_g[avail_inode];
+			new_inode = inode_g+avail_inode;
 			new_inode->inode_num = avail_inode;
 			new_inode->is_dir = true;
 			new_inode->block_off = avail_dirent;
 			new_inode->block_n = 1;
 			
 			DIRENT *new_dir;
-			new_dir = &dirent_g[avail_dirent];
+			new_dir = dirent_g+avail_dirent;
 			strcpy(new_dir->file_name,new_name);
 			new_dir->inode_num = avail_inode;
 			new_dir->dirent_c = 0;
@@ -119,7 +119,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		int new_c = parent_dir->dirent_c + 1;
 		
 		INODE *new_inode;
-		new_inode = &inode_g[avail_inode];
+		new_inode = inode_g+avail_inode;
 		new_inode->inode_num = avail_inode;
 		new_inode->is_dir = false;
 		new_inode->block_off = avail_datablk;
@@ -127,7 +127,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 		new_inode->size = 0;
 
 		DIRENT *new_dir;
-		new_dir = &dirent_g[avail_dirent];
+		new_dir = dirent_g+avail_dirent;
 		strcpy(new_dir->file_name, new_name);
 		new_dir->inode_num = avail_inode;
 		new_dir->dirent_num = avail_dirent;
