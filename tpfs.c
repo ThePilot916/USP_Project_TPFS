@@ -250,12 +250,12 @@ static struct fuse_operations tp_operations = {
 
 
 int main(int argc, char *argv[]){
+		
+	freemap_g = (FREEMAP *)malloc(sizeof(FREEMAP));
+	inode_g = (INODE *)malloc(sizeof(INODE)*INODE_MAX);
+	dirent_g = (DIRENT *)malloc(sizeof(DIRENT)*DIRENT_MAX);
+	datablk_g = (DATA_BLOCK *)malloc(sizeof(DATA_BLOCK)*DATA_BLOCKS);
 	
-	TPFS = calloc(1,TPFS_SIZE);							//init with 1 because freemap is auto initialised by this
-	freemap_g = (FREEMAP *)TPFS;
-	inode_g = (INODE *)(TPFS+INODE_OFF);
-	dirent_g = (DIRENT *)(TPFS+DIRENT_OFF);
-	datablk_g = (DATA_BLOCK *)(TPFS+DATABLK_OFF);
 	
 	FILE *pers_file = fopen("pers_tpfs","r+");
 	freemap_initialise(pers_file);
