@@ -7,30 +7,25 @@
  * 1 if the dirent is a directory	
  */
 
-int get_dirent(DIRENT *dirent,char *path){
-		printf("get_dirent: %s   %d   %d\n",path, strlen(path),strcmp(path,"/"));
-		printf("check 1\n");
+int get_dirent(DIRENT **dirent,char *path){
+		printf("get_dirent: %s %d   %d\n",path, strlen(path),strcmp(path,"/"));
 	if(strcmp(path,"/")==0){
-		dirent = &dirent_g[0];
-			printf("check 2\n");
+		*dirent = &dirent_g[0];
+		printf("Entered get_dirent if %d\n", (*dirent)->dirent_c);
 
 		return 1;
 	}
 	else{
-		printf("check 3\n");
+		printf("in get_dirent else\n");
 		char *token = strtok(path,"/");
 		DIRENT *parent = dirent_g;
-		printf("check 4\n");
 		while(token != NULL){
 					
 				#ifdef DEBUGx2
 					printf("get_dirent: %s   %d\n",parent->file_name, parent->dirent_c);
 				#endif
-				printf("check 5\n");
 				int flag = 0;
-				printf("check 6\n");
 				for(int i = 0; i < parent->dirent_c; i++){
-					printf("check 7\n");
 					#ifdef DEBUGx2
 						printf("child no: %d\n",i);
 					#endif
@@ -45,14 +40,25 @@ int get_dirent(DIRENT *dirent,char *path){
 						parent = child;
 						flag = 1;
 					}
+					printf("Made it here1");
+				}
+				if (flag==0)
+				{
+										printf("Made it here3");
+
+					return -1;
 				}
 				token = strtok(NULL,"/");
+									printf("Made it here2");
+
 		}
-		dirent = parent;
+		*dirent = parent;
 		if(inode_g[parent->inode_num].is_dir == true ){
+			printf("Getting 1\n");
 			return 1;
 		}
 		else{
+			printf("Getting 0\n");
 			return 0;
 		}
 	}
@@ -61,14 +67,14 @@ int get_dirent(DIRENT *dirent,char *path){
 
 
 
-int get_inode(INODE *inode, char *path){
+int get_inode(INODE **inode, char *path){
 	#ifdef DEBUG
 		printf("get_inode: %s\n",path);
 	#endif
 	DIRENT *temp;
 	int dircheck = get_dirent(temp,path);
 	if(dircheck == 0 || dircheck == 1){
-		inode = &inode_g[temp->inode_num];							//something is wrong
+		*inode = &inode_g[temp->inode_num];							//something is wrong
 		return dircheck;
 	}
 	else{
@@ -83,7 +89,7 @@ int get_inode(INODE *inode, char *path){
  *Return char string of the new path(only the new filename)
  */
 
-char* get_dirent_parent(DIRENT *dirent, char *path){
+char* get_dirent_parent(DIRENT **dirent, char *path){
 		printf("get_dirent_parent: %s\n",path);
 
 	char *newname = (char *)malloc(sizeof(char)*strlen(path));
@@ -101,8 +107,7 @@ char* get_dirent_parent(DIRENT *dirent, char *path){
 		newname[i-temp_i] = path[i]; 
 	}
 	newname[i-temp_i] = '\0';
-	printf("After reversing the string, %s", newname);
-		int new_len = total_len+1;
+	int new_len = total_len+1;
 	char *parent_path = (char *)malloc(sizeof(char)*new_len);
 	int j;
 	for(j = 0; j < temp_i; j++){

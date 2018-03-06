@@ -1,7 +1,7 @@
 #include "tpfs.h"
 
 static int tp_getattr(const char *path, struct stat *stbuf, struct fuse_file_info *fi){
-	
+	fi = (void*) fi;
 	#ifdef DEBUG
 		printf("GetAttr => %s\n",path);
 	#endif
@@ -10,22 +10,26 @@ static int tp_getattr(const char *path, struct stat *stbuf, struct fuse_file_inf
 	DIRENT *temp;
 	memset(stbuf, 0, sizeof(struct stat));
 
-	int dir_check = get_dirent(temp,path);
+	int dir_check = get_dirent(&temp,path);
+	printf("dir_check exited");
 
 	if(dir_check == 1){
 		
 		#ifdef DEBUGx2
-			printf("Get<F6>attr-> Directory\n");
+			printf("Getattr-> Directory\n");
 		#endif
 		
 		stbuf->st_mode = S_IFDIR | 0755;
 		stbuf->st_nlink = 2;
+		printf("exited getattr as directory\n");
 		return 0;
 	}
 	else if(dir_check == 0){
 		stbuf->st_mode = S_IFREG | 0777;
 		stbuf->st_nlink = 1;
 		stbuf->st_size = 4096;
+		printf("exited getattr as file\n");
+
 	}
 	else{
 		return -ENOENT;
@@ -39,14 +43,23 @@ static int tp_readdir(const char *path, void *buf, fuse_fill_dir_t filler, off_t
 	(void) off;
 	(void) fi;
 	DIRENT *temp;
-	if(get_dirent(temp, path) != 0){
+	temp = NULL;
+	printf("Is there an error here?\n");
+	int get_dirent_check = get_dirent(&temp, path);
+//	printf("Exited get_dirent in readdir %d\n", temp->dirent_c);
+	if(get_dirent_check == 0){
+//		printf("Checking read if");
 		return -ENOENT;
 	}
 	else{
+//		printf("Check_read_else: %d\n",temp->dirent_c);
+
 		filler(buf,".",NULL,0);
+		printf("Still in read_else\n");
 		filler(buf,"..",NULL,0);
 		for(int i = 0; i < temp->dirent_c; i++){
 			filler(buf,dirent_g[temp->dirent_l[i]].file_name,NULL,0);
+			printf("path_name: %s\n",dirent_g[temp->dirent_l[i]].file_name);
 		}
 	}
 	return 0;
@@ -60,9 +73,9 @@ static int tp_mkdir(const char *path, mode_t mode){
 	#endif
 	
 		DIRENT *parent_dir;
-		printf("Before the dirent call\n");
-		char *new_name = get_dirent_parent(parent_dir,path);					//return ENOTDIR if dir_check = 0
-		printf("file name: %s\n",new_name);
+//		printf("Before the dirent call\n");
+		char *new_name = get_dirent_parent(&parent_dir,path);					//return ENOTDIR if dir_check = 0
+//		printf("file name: %s\n",new_name);
 
 		int avail_dirent = get_dirent_free();
 		int avail_inode = get_inode_free();
@@ -71,30 +84,29 @@ static int tp_mkdir(const char *path, mode_t mode){
 			int new_c = parent_dir->dirent_c + 1;
 			
 			INODE *new_inode;
-			new_inode = &inode_g[avail_inode];
+			new_inode = &(inode_g[avail_inode]);
 			new_inode->inode_num = avail_inode;
 			new_inode->is_dir = true;
 			new_inode->block_off = avail_dirent;
 			new_inode->block_n = 1;
 			
 			DIRENT *new_dir;
-			new_dir = &dirent_g[avail_dirent];
+			new_dir = &(dirent_g[avail_dirent]);
 			strcpy(new_dir->file_name,new_name);
 			new_dir->inode_num = avail_inode;
 			new_dir->dirent_c = 0;
 			new_dir->dirent_num = avail_dirent;
 
+			parent_dir->dirent_l[new_c-1] = avail_dirent;
 			parent_dir->dirent_c = new_c;
-			parent_dir->dirent_l[new_c] = avail_dirent;
+			
 			
 			freemap_g->inode_free[avail_inode] = 0;											//remove free for avail_inode
 			freemap_g->dirent_free[avail_dirent] = 0;											//remove free for avail_dirent
 		}
 		else{
 			return -ENOSPC;																							//no more dirents or inodes avail
-		}
-	return 0;
-	
+		}	
 	printf("%s\n", path);
 	return 0;
 }
@@ -112,7 +124,7 @@ static int tp_mknod(const char *path, mode_t mode, dev_t d){
 	#endif
 	
 	DIRENT *parent_dir;
-	char *new_name = get_dirent_parent(parent_dir,path);
+	char *new_name = get_dirent_parent(&parent_dir,path);
 
 	int avail_dirent = get_dirent_free();
 	int avail_inode = get_inode_free();
@@ -157,7 +169,7 @@ static int tp_open(const char *path, struct fuse_file_info *fi){
 	#endif
 	
 	INODE *temp;
-	int ino_res = get_inode(temp,path);
+	int ino_res = get_inode(&temp,path);
 	if(ino_res != 0){
 		return -1;
 	}
@@ -185,7 +197,7 @@ static int tp_read(const char *path, char *buf, size_t size, off_t off, struct f
 
 	(void) fi;
 	INODE *inode;
-	int ino_res = get_inode(inode,path);
+	int ino_res = get_inode(&inode,path);
 	if(ino_res != 0){
 		return -ENOENT;		
 	}
@@ -214,7 +226,7 @@ int tp_write(const char *path, const char *buf, size_t size, off_t off, struct f
 	#endif
 	(void) fi;
 	INODE *inode;
-	int ino_res = get_inode(inode,path);
+	int ino_res = get_inode(&inode,path);
 	if(ino_res == 1){
 		return -EISDIR;
 	}

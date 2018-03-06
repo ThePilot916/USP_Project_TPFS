@@ -3,6 +3,7 @@
 
 //#define DEBUG inorder to debug
 #define DEBUG
+
 #define DEBUGx2
 
 /*
@@ -125,9 +126,9 @@ int tp_init(struct fuse_conn_info *, struct fuse_config *);
  * Helper Functions
  */
 
-int get_dirent(DIRENT *dirent, char *path);
-int get_inode(INODE *inode, char *path);
-char* get_dirent_parent(DIRENT *dirent, char *path);
+int get_dirent(DIRENT **dirent, char *path);
+int get_inode(INODE **inode, char *path);
+char* get_dirent_parent(DIRENT **dirent, char *path);
 int get_inode_free();
 int get_dirent_free();
 int get_datablk_free();
